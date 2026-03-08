@@ -1,0 +1,36 @@
+2026-03-08 04:10:47.063 | INFO     | __main__:main:75 - Database ready.
+2026-03-08 04:10:47.068 | INFO     | rpi.camera.receiver:start:41 - Camera receiver listening on 0.0.0.0:8080
+2026-03-08 04:10:47.068 | INFO     | rpi.camera.puller:start:34 - Camera puller started → http://10.29.197.105/capture every 5s
+2026-03-08 04:10:47.068 | WARNING  | rpi.display.eink:start:68 - Waveshare EPD not available — display will print to stdout.
+2026-03-08 04:10:47.068 | INFO     | __main__:main:137 - Curiosity Agent is running. Waiting for frames from ESP32…
+2026-03-08 04:10:47.081 | DEBUG    | rpi.display.eink:_render_sync:113 - Display preview saved to /tmp/curiosity_display_preview.png
+2026-03-08 04:10:52.941 | ERROR    | rpi.camera.puller:_loop:61 - Puller error: 
+2026-03-08 04:10:57.070 | DEBUG    | __main__:_run_loop:189 - No frame received, waiting…
+2026-03-08 04:11:03.941 | ERROR    | rpi.camera.puller:_loop:61 - Puller error: 
+2026-03-08 04:11:07.072 | DEBUG    | __main__:_run_loop:189 - No frame received, waiting…
+2026-03-08 04:16:51.282 | INFO     | __main__:main:75 - Database ready.
+2026-03-08 04:16:51.287 | INFO     | rpi.camera.receiver:start:41 - Camera receiver listening on 0.0.0.0:8080
+2026-03-08 04:16:51.287 | INFO     | rpi.camera.puller:start:34 - Camera puller started → http://10.29.197.105/capture every 5s
+2026-03-08 04:16:51.288 | WARNING  | rpi.display.eink:start:68 - Waveshare EPD not available — display will print to stdout.
+2026-03-08 04:16:51.288 | INFO     | __main__:main:137 - Curiosity Agent is running. Waiting for frames from ESP32…
+2026-03-08 04:16:51.301 | DEBUG    | rpi.display.eink:_render_sync:113 - Display preview saved to /tmp/curiosity_display_preview.png
+2026-03-08 04:16:56.940 | ERROR    | rpi.camera.puller:_loop:61 - Puller error: 
+2026-03-08 04:17:01.289 | DEBUG    | __main__:_run_loop:189 - No frame received, waiting…
+2026-03-08 04:17:07.941 | ERROR    | rpi.camera.puller:_loop:61 - Puller error: 
+2026-03-08 04:17:11.291 | DEBUG    | __main__:_run_loop:189 - No frame received, waiting…
+2026-03-08 04:17:18.939 | ERROR    | rpi.camera.puller:_loop:61 - Puller error: 
+2026-03-08 04:17:21.292 | DEBUG    | __main__:_run_loop:189 - No frame received, waiting…
+2026-03-08 04:18:10.022 | INFO     | __main__:main:75 - Database ready.
+2026-03-08 04:18:10.027 | INFO     | rpi.camera.receiver:start:41 - Camera receiver listening on 0.0.0.0:8080
+2026-03-08 04:18:10.027 | INFO     | rpi.camera.puller:start:34 - Camera puller started → http://10.29.197.105/capture every 5s
+2026-03-08 04:18:10.027 | WARNING  | rpi.display.eink:start:68 - Waveshare EPD not available — display will print to stdout.
+2026-03-08 04:18:10.027 | INFO     | __main__:main:137 - Curiosity Agent is running. Waiting for frames from ESP32…
+2026-03-08 04:18:10.040 | DEBUG    | rpi.display.eink:_render_sync:113 - Display preview saved to /tmp/curiosity_display_preview.png
+2026-03-08 04:18:15.941 | ERROR    | rpi.camera.puller:_loop:61 - Puller error: 
+2026-03-08 04:19:08.160 | INFO     | __main__:main:75 - Database ready.
+2026-03-08 04:19:08.165 | INFO     | rpi.camera.receiver:start:41 - Camera receiver listening on 0.0.0.0:8080
+2026-03-08 04:19:08.165 | INFO     | rpi.camera.puller:start:34 - Camera puller started → http://10.29.197.105/capture every 5s
+2026-03-08 04:19:08.165 | WARNING  | rpi.display.eink:start:68 - Waveshare EPD not available — display will print to stdout.
+2026-03-08 04:19:08.165 | INFO     | __main__:main:137 - Curiosity Agent is running. Waiting for frames from ESP32…
+2026-03-08 04:19:08.179 | DEBUG    | rpi.display.eink:_render_sync:113 - Display preview saved to /tmp/curiosity_display_preview.png
+2026-03-08 04:19:13.940 | ERROR    | rpi.camera.puller:_loop:61 - Puller error: 

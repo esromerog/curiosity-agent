@@ -18,56 +18,24 @@ recognition:
   confidence_threshold: 0.45
 
 agent:
-  cooldown_minutes: 10       # silence period after ignored/rejected curiosity
-  max_conversation_turns: 20
-  save_phrases:
-    - "that's all for now"
-    - "continue this later"
-    - "save this"
-    - "pause"
-  end_phrases:
-    - "goodbye"
-    - "done"
-    - "stop"
-    - "exit"
+  cooldown_minutes: 0.5       # silence period after each question
 
 audio:
   tts_engine: "edge-tts"     # "edge-tts" | "pyttsx3" | "espeak"
   tts_voice: "en-US-GuyNeural"
-  stt_model: "base.en"       # Whisper model size
-  input_device_index: null   # null = system default
   output_device_index: null
-  silence_threshold_sec: 2.0 # seconds of silence before STT commits
 
 display:
-  driver: "waveshare_epd7in5_v2"   # module name under display/drivers/
-  width: 800
-  height: 480
-  metrics_refresh_minutes: 5
+  driver: "waveshare_epd4in2_v2"
+  width: 400
+  height: 300
+  encoder_pin_a: 14            # rotary encoder CLK pin (BCM)
+  encoder_pin_b: 15            # rotary encoder DT pin (BCM)
+  encoder_pin_button: 18       # rotary encoder push-button pin (BCM)
+  curiosity_type_hours: 12     # x-axis span (hours) for the stacked-area types view
 
 storage:
   db_path: "data/curiosity.db"
   saved_curiosities_dir: "data/saved"
 
-analytics:
-  interest_categories:
-    - history
-    - economics
-    - mathematics
-    - science
-    - fitness
-    - travel
-    - design
-    - philosophy
-    - technology
-    - arts
-    - language
-    - nature
-    - culture
-    - psychology
-    - politics
-  ideation_types:
-    - creative
-    - learning
-    - conceptual
-    - exploratory
+

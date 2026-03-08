@@ -181,6 +181,92 @@ class Database:
         ) as cur:
             return {r["category"]: r["score"] for r in await cur.fetchall()}
 
+    async def get_top_topics(self, n: int = 5) -> list[tuple[str, float]]:
+        """Return the top-n interest categories by cumulative score."""
+        async with self._conn.execute(
+            "SELECT category, score FROM interest_scores ORDER BY score DESC LIMIT ?",
+            (n,),
+        ) as cur:
+            return [(r["category"], r["score"]) for r in await cur.fetchall()]
+
+    async def get_today_curiosity_nodes(self) -> list[dict]:
+        """
+        Return today's curiosities as node data for the breadth × depth map.
+
+        breadth = number of distinct interest categories across all classification
+                  events for that curiosity (proxy for domain spread).
+        depth   = average depth_signal from the classifier (0 = broad, 1 = deep).
+        """
+        import datetime
+        today_start = datetime.datetime.now().replace(
+            hour=0, minute=0, second=0, microsecond=0
+        ).timestamp()
+
+        async with self._conn.execute(
+            """
+            SELECT e.curiosity_id, e.metadata, c.trigger_question
+            FROM analytics_events e
+            JOIN curiosities c ON e.curiosity_id = c.id
+            WHERE e.event_type = 'interest_classified'
+              AND e.timestamp >= ?
+            """,
+            (today_start,),
+        ) as cur:
+            rows = await cur.fetchall()
+
+        by_id: dict[str, dict] = {}
+        for row in rows:
+            cid = row["curiosity_id"]
+            meta = json.loads(row["metadata"] or "{}")
+            depth = float(meta.get("depth_signal", 0.5))
+            categories: dict = meta.get("categories", {})
+
+            if cid not in by_id:
+                by_id[cid] = {
+                    "question": row["trigger_question"],
+                    "depth_vals": [],
+                    "categories": set(),
+                }
+            by_id[cid]["depth_vals"].append(depth)
+            by_id[cid]["categories"].update(categories.keys())
+
+        return [
+            {
+                "question": v["question"],
+                "depth": sum(v["depth_vals"]) / len(v["depth_vals"]),
+                "breadth": len(v["categories"]),
+            }
+            for v in by_id.values()
+        ]
+
+    async def get_hourly_type_data(self, since_hours: int = 24) -> dict[tuple[int, str], int]:
+        """
+        Return count of each ideation type per hour of day, looking back
+        `since_hours` hours from now.
+
+        Returns dict mapping (hour_of_day, ideation_type) → count.
+        """
+        since = time.time() - since_hours * 3600
+        async with self._conn.execute(
+            """
+            SELECT hour_of_day, metadata
+            FROM analytics_events
+            WHERE event_type = 'interest_classified'
+              AND timestamp >= ?
+            """,
+            (since,),
+        ) as cur:
+            rows = await cur.fetchall()
+
+        result: dict[tuple[int, str], int] = {}
+        for row in rows:
+            hour = int(row["hour_of_day"])
+            meta = json.loads(row["metadata"] or "{}")
+            itype = meta.get("ideation_type", "speculative")
+            key = (hour, itype)
+            result[key] = result.get(key, 0) + 1
+        return result
+
     # ------------------------------------------------------------------
     # user profile
     # ------------------------------------------------------------------

@@ -21,7 +21,12 @@ _CATEGORIES = [
     "language", "nature", "culture", "psychology", "politics",
 ]
 
-_IDEATION_TYPES = ["creative", "learning", "conceptual", "exploratory"]
+# Question-style taxonomy used by the stacked-area view.
+# speculative  – "what if" / future-oriented thinking
+# investigative – fact-seeking, analytical, cause-and-effect
+# ideation      – creative, generative, design-oriented
+# empirical     – observation-based, evidence-driven
+_IDEATION_TYPES = ["speculative", "investigative", "ideation", "empirical"]
 
 _CLASSIFY_PROMPT = f"""
 You are an interest classifier. Given a user message from a curiosity-driven conversation,
@@ -29,6 +34,10 @@ identify which interest categories are present and what ideation type it represe
 
 Categories: {', '.join(_CATEGORIES)}
 Ideation types: {', '.join(_IDEATION_TYPES)}
+  speculative  = "what if" / future-oriented / hypothetical
+  investigative = fact-seeking / analytical / cause-and-effect
+  ideation      = creative / generative / design-oriented
+  empirical     = observation-based / evidence-driven / measurement
 
 Respond with JSON only:
 {{

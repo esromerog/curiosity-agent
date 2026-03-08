@@ -105,6 +105,9 @@ async def main() -> None:
     display = EinkDisplay(
         encoder_pin_a=cfg["display"].get("encoder_pin_a", 14),
         encoder_pin_b=cfg["display"].get("encoder_pin_b", 15),
+        encoder_pin_button=cfg["display"].get("encoder_pin_button", 18),
+        db=db,
+        type_chart_hours=cfg["display"].get("curiosity_type_hours", 12),
     )
 
     # ---- start background services ---
