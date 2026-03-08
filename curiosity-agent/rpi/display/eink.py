@@ -1,16 +1,16 @@
 """
-E-ink display driver (Waveshare 7.5" V2, 800×480).
+E-ink display driver (Waveshare 4.2" V2, 400x300).
 
-Renders a digestible metrics dashboard using Pillow.
-Falls back gracefully on non-RPi machines (prints to stdout).
+Displays a backlog of past curiosity questions and top interest themes.
+Falls back gracefully on non-RPi machines (saves PNG preview to /tmp/).
 
 Install Waveshare driver:
   git clone https://github.com/waveshare/e-Paper
   pip install ./e-Paper/RaspberryPi_JetsonNano/python/
-"""
 
-# Here –on the dock– we will display the "backlog" of questions that have been asked in the past
-# This includes things like what are the main themes of what you were thinking
+Requires SPI enabled on the RPi:
+  sudo raspi-config -> Interface Options -> SPI -> Yes
+"""
 
 from __future__ import annotations
 
@@ -28,14 +28,14 @@ except ImportError:
     PIL_AVAILABLE = False
 
 try:
-    from waveshare_epd import epd7in5_V2 as epd_driver
+    from waveshare_epd import epd4in2_V2 as epd_driver
     EPD_AVAILABLE = True
 except ImportError:
     EPD_AVAILABLE = False
 
 
 _FONT_DIR = Path(__file__).parent / "fonts"
-_W, _H = 800, 480
+_W, _H = 400, 300
 _BG = 255   # white
 _FG = 0     # black
 _GRAY = 128
@@ -113,67 +113,63 @@ class EinkDisplay:
             logger.debug("Display preview saved to /tmp/curiosity_display_preview.png")
 
     def _draw_dashboard(self, draw: Any, m: dict, w: int = _W, h: int = _H) -> None:
-        f_large = _load_font(26)
-        f_med   = _load_font(18)
-        f_small = _load_font(14)
-        f_tiny  = _load_font(12)
+        # Font sizes tuned for 400x300 display
+        f_large = _load_font(18)
+        f_med   = _load_font(14)
+        f_small = _load_font(12)
+        f_tiny  = _load_font(10)
 
         # --- header ---
-        draw.text((20, 10), "What you've been wondering about", font=f_large, fill=_FG)
-        draw.line([(20, 44), (w - 20, 44)], fill=_FG, width=2)
+        # Layout: header 0-38px, body 44-252px (3 rows x 69px), themes 252-278px, footer 278-300px
+        draw.text((10, 8), "What you've been wondering about", font=f_large, fill=_FG)
+        draw.line([(10, 32), (w - 10, 32)], fill=_FG, width=2)
 
         # --- questions backlog (main body) ---
         questions = m.get("recent_questions", [])
-        y = 56
-        row_h = 58  # height per question row
-        for i, q in enumerate(questions[:6]):
-            x = 20
+        y = 40
+        row_h = 69  # 3 rows fit in 207px body
+        max_chars = (w - 40) // 7  # chars per line at ~7px/char for size 14
+        for i, q in enumerate(questions[:3]):
+            x = 10
             text = q.get("trigger_question", "").strip()
-            # wrap long questions to fit within ~75% of width
-            max_chars = (w - 60) // 8
             lines = textwrap.wrap(text, width=max_chars) or [text]
-            # bullet
-            draw.text((x, y + 2), "–", font=f_med, fill=_FG)
-            x += 18
-            # question text (up to 2 lines)
+            draw.text((x, y + 2), "-", font=f_med, fill=_FG)
+            x += 14
             draw.text((x, y), lines[0], font=f_med, fill=_FG)
             if len(lines) > 1:
-                draw.text((x, y + 20), lines[1], font=f_small, fill=_FG)
-            # summary as subtext if present
+                draw.text((x, y + 16), lines[1], font=f_small, fill=_FG)
             summary = (q.get("summary") or "").strip()
             if summary:
-                summary_wrapped = textwrap.shorten(summary, width=max_chars + 10, placeholder="…")
-                draw.text((x, y + 38), summary_wrapped, font=f_tiny, fill=_GRAY)
-            # divider between rows (not after last)
+                summary_wrapped = textwrap.shorten(summary, width=max_chars + 5, placeholder="...")
+                draw.text((x, y + 32), summary_wrapped, font=f_tiny, fill=_GRAY)
             if i < len(questions) - 1:
-                draw.line([(20, y + row_h - 4), (w - 20, y + row_h - 4)], fill=_GRAY, width=1)
+                draw.line([(10, y + row_h - 4), (w - 10, y + row_h - 4)], fill=_GRAY, width=1)
             y += row_h
 
-        # if no questions yet
         if not questions:
-            draw.text((20, 80), "No completed curiosities yet.", font=f_med, fill=_GRAY)
+            draw.text((10, 60), "No completed curiosities yet.", font=f_med, fill=_GRAY)
 
-        # --- themes strip at bottom ---
-        themes_y = h - 52
-        draw.line([(20, themes_y - 6), (w - 20, themes_y - 6)], fill=_FG, width=1)
-        draw.text((20, themes_y), "Themes:", font=f_small, fill=_FG)
+        # --- themes strip ---
+        themes_y = h - 46
+        draw.line([(10, themes_y - 4), (w - 10, themes_y - 4)], fill=_FG, width=1)
+        draw.text((10, themes_y), "Themes:", font=f_tiny, fill=_FG)
         interests = m.get("top_interests", [])
-        tag_x = 90
-        for item in interests[:6]:
+        tag_x = 68
+        for item in interests[:5]:
             label = item["name"].capitalize()
-            tag_w = len(label) * 8 + 12
-            draw.rectangle([tag_x, themes_y, tag_x + tag_w, themes_y + 18], outline=_FG)
-            draw.text((tag_x + 6, themes_y + 2), label, font=f_tiny, fill=_FG)
-            tag_x += tag_w + 8
-            if tag_x > w - 80:
+            tag_w = len(label) * 7 + 8
+            if tag_x + tag_w > w - 10:
                 break
+            draw.rectangle([tag_x, themes_y, tag_x + tag_w, themes_y + 14], outline=_FG)
+            draw.text((tag_x + 4, themes_y + 1), label, font=f_tiny, fill=_FG)
+            tag_x += tag_w + 6
 
         # --- footer ---
-        draw.line([(20, h - 22), (w - 20, h - 22)], fill=_GRAY, width=1)
+        draw.line([(10, h - 18), (w - 10, h - 18)], fill=_GRAY, width=1)
         total = m.get("total_curiosities", 0)
         style = m.get("focus_style", "")
-        footer = f"{total} curiosities  ·  {style}" if style else f"{total} curiosities"
-        draw.text((20, h - 18), footer, font=f_tiny, fill=_GRAY)
+        footer = f"{total} curiosities  |  {style}" if style else f"{total} curiosities"
+        draw.text((10, h - 14), footer, font=f_tiny, fill=_GRAY)
 
     def _print_fallback(self, metrics: dict) -> None:
         print("\n" + "=" * 60)
