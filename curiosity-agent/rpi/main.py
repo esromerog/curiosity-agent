@@ -66,7 +66,7 @@ async def main() -> None:
     cfg = load_config()
 
     logger.remove()
-    logger.add(sys.stderr, level="INFO")
+    logger.add(sys.stderr, level="DEBUG")
     logger.add("data/curiosity.log", rotation="10 MB", level="DEBUG")
 
     # ---- database ---

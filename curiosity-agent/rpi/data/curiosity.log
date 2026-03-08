@@ -19,3 +19,62 @@
 2026-03-08 03:56:06.230 | INFO     | rpi.agent.session:end:77 - Curiosity ebaa0bcc -> ignored
 2026-03-08 03:56:06.230 | INFO     | rpi.agent.cooldown:start:38 - Cooldown started (ignored). Resumes in 10 min.
 2026-03-08 03:56:06.435 | DEBUG    | rpi.audio.stt:_record_and_transcribe:119 - Transcribed: "Wait, maybe I'm talking to you in the AI right now. I don't know. It's a crazy part. Like, I don't know if it's listening or not. No, well, whatever. Okay, another 30 seconds. Oh."
+2026-03-08 04:19:23.526 | INFO     | __main__:main:75 - Database ready.
+2026-03-08 04:19:23.531 | INFO     | rpi.camera.receiver:start:41 - Camera receiver listening on 0.0.0.0:8080
+2026-03-08 04:19:23.531 | INFO     | rpi.camera.puller:start:34 - Camera puller started → http://10.29.197.105/capture every 5s
+2026-03-08 04:19:23.531 | WARNING  | rpi.display.eink:start:68 - Waveshare EPD not available — display will print to stdout.
+2026-03-08 04:19:23.531 | INFO     | __main__:main:137 - Curiosity Agent is running. Waiting for frames from ESP32…
+2026-03-08 04:19:23.541 | DEBUG    | rpi.display.eink:_render_sync:113 - Display preview saved to /tmp/curiosity_display_preview.png
+2026-03-08 04:19:28.939 | ERROR    | rpi.camera.puller:_loop:61 - Puller error: 
+2026-03-08 04:19:33.533 | DEBUG    | __main__:_run_loop:189 - No frame received, waiting…
+2026-03-08 04:23:48.431 | INFO     | __main__:main:75 - Database ready.
+2026-03-08 04:23:48.436 | INFO     | rpi.camera.receiver:start:41 - Camera receiver listening on 0.0.0.0:8080
+2026-03-08 04:23:48.436 | INFO     | rpi.camera.puller:start:34 - Camera puller started → http://10.29.197.105/capture every 5s
+2026-03-08 04:23:48.437 | WARNING  | rpi.display.eink:start:68 - Waveshare EPD not available — display will print to stdout.
+2026-03-08 04:23:48.437 | INFO     | __main__:main:137 - Curiosity Agent is running. Waiting for frames from ESP32…
+2026-03-08 04:23:48.451 | DEBUG    | rpi.display.eink:_render_sync:113 - Display preview saved to /tmp/curiosity_display_preview.png
+2026-03-08 04:23:52.712 | DEBUG    | __main__:_run_loop:198 - Analysing scene…
+2026-03-08 04:23:56.745 | INFO     | __main__:_run_loop:200 - Scene: A person reclines or rests at what appears to be an office or study workspace, wrapped in a blanket or shawl, suggesting a moment of rest amid intellectual work. | Objects: ['person', 'desk', 'office chair', 'bookshelf', 'blanket/scarf', 'laptop/monitor', 'shelving unit']
+2026-03-08 04:23:59.047 | INFO     | rpi.agent.session:begin:62 - Curiosity 64ed909a started.
+2026-03-08 04:23:59.048 | INFO     | __main__:speak:174 - [AGENT] When did the blanket become more honest than the chair
+2026-03-08 04:24:03.506 | DEBUG    | __main__:listen:178 - Listening (timeout=30s)…
+2026-03-08 04:24:03.506 | INFO     | rpi.audio.stt:_load_model:41 - Loading Whisper model 'base.en'…
+2026-03-08 04:24:03.896 | INFO     | rpi.audio.stt:_load_model:43 - Whisper model ready.
+2026-03-08 04:24:03.897 | DEBUG    | rpi.audio.stt:_record_and_transcribe:78 - Listening…
+2026-03-08 04:33:03.485 | INFO     | __main__:main:75 - Database ready.
+2026-03-08 04:33:03.490 | INFO     | rpi.camera.receiver:start:41 - Camera receiver listening on 0.0.0.0:8080
+2026-03-08 04:33:03.490 | INFO     | rpi.camera.puller:start:34 - Camera puller started → http://10.29.197.105/capture every 5s
+2026-03-08 04:33:03.490 | WARNING  | rpi.display.eink:start:68 - Waveshare EPD not available — display will print to stdout.
+2026-03-08 04:33:03.490 | INFO     | __main__:main:137 - Curiosity Agent is running. Waiting for frames from ESP32…
+2026-03-08 04:33:03.502 | DEBUG    | rpi.display.eink:_render_sync:113 - Display preview saved to /tmp/curiosity_display_preview.png
+2026-03-08 04:33:07.206 | DEBUG    | __main__:_run_loop:198 - Analysing scene…
+2026-03-08 04:33:10.950 | INFO     | __main__:_run_loop:200 - Scene: A person in a patterned shirt is seated at an office workstation, captured from an overhead security camera angle that creates a disorienting rotated perspective. | Objects: ['person', 'patterned shirt', 'desk', 'computer monitor', 'keyboard', 'office chair', 'ceiling tiles', 'overhead lighting']
+2026-03-08 04:33:12.765 | INFO     | rpi.agent.session:begin:62 - Curiosity 4c0d92dc started.
+2026-03-08 04:33:12.766 | INFO     | __main__:speak:174 - [AGENT] How many hours before the ceiling starts to feel like the floor
+2026-03-08 04:33:17.714 | DEBUG    | __main__:listen:178 - Listening (timeout=30s)…
+2026-03-08 04:33:17.715 | INFO     | rpi.audio.stt:_load_model:41 - Loading Whisper model 'base.en'…
+2026-03-08 04:33:18.069 | INFO     | rpi.audio.stt:_load_model:43 - Whisper model ready.
+2026-03-08 04:33:18.069 | DEBUG    | rpi.audio.stt:_record_and_transcribe:78 - Listening…
+2026-03-08 04:33:22.653 | DEBUG    | rpi.audio.stt:_record_and_transcribe:119 - Transcribed: "was what they were trying to imply though where it's..."
+2026-03-08 04:33:22.653 | INFO     | __main__:listen:181 - [USER] was what they were trying to imply though where it's...
+2026-03-08 04:33:27.817 | INFO     | __main__:speak:174 - [AGENT] ...where it's not just a visual trick but something about how surveillance itself reorients the space — the camera doesn't just watch from above, it *claims* above as a vantage point, and suddenly the person becomes a figure on a surface rather than a body in a room. The geometry of power flattens them.
+
+Which makes me wonder — does the person at the desk experience their own space differently knowing the camera is there, or is the disorientation something that only exists for the viewer looking at the feed?
+2026-03-08 04:33:56.655 | ERROR    | rpi.camera.puller:_loop:61 - Puller error: 
+2026-03-08 04:33:56.656 | DEBUG    | __main__:listen:178 - Listening (timeout=60.0s)…
+2026-03-08 04:33:56.657 | DEBUG    | rpi.audio.stt:_record_and_transcribe:78 - Listening…
+2026-03-08 04:34:01.451 | DEBUG    | rpi.audio.stt:_record_and_transcribe:119 - Transcribed: 'what those curiosities are always targeted towards. Like.'
+2026-03-08 04:34:01.451 | INFO     | __main__:listen:181 - [USER] what those curiosities are always targeted towards. Like.
+2026-03-08 04:34:08.062 | INFO     | __main__:speak:174 - [AGENT] Like we keep asking what surveillance does to the watched, but the more unsettling question might be what it does to the watcher — the way looking from above trains you to stop reading a person as a person and start reading them as a pattern. A shirt becomes "patterned shirt," a posture becomes "seated at workstation," and that flattening isn't a failure of the camera, it's the whole point.
+
+So is the disorientation in that rotated image actually a rupture — a moment where the system accidentally gives back the strangeness it usually strips away?
+2026-03-08 04:34:38.468 | DEBUG    | __main__:listen:178 - Listening (timeout=60.0s)…
+2026-03-08 04:34:38.468 | DEBUG    | rpi.audio.stt:_record_and_transcribe:78 - Listening…
+2026-03-08 04:34:45.157 | DEBUG    | rpi.audio.stt:_record_and_transcribe:119 - Transcribed: 'like theAMP two two heat third two th'
+2026-03-08 04:34:45.157 | INFO     | __main__:listen:181 - [USER] like theAMP two two heat third two th
+2026-03-08 04:34:51.685 | INFO     | __main__:speak:174 - [AGENT] That sounds like something broke mid-thought — or like language itself started doing what the rotated camera does, losing its orientation, the syntax tilting until the meaning slides off.
+
+Which is actually interesting because maybe that's closer to what the image actually produces than any clean sentence about it could be — the experience of trying to hold a frame that keeps refusing to settle into readable.
+
+Does the disorientation land in the body before it lands in language?
+2026-03-08 04:34:56.979 | INFO     | __main__:main:152 - Shutting down.
