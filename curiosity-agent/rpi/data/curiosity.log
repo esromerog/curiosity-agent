@@ -1,0 +1,21 @@
+2026-03-08 03:48:07.465 | INFO     | __main__:main:75 - Database ready.
+2026-03-08 03:48:07.465 | ERROR    | __main__:main:80 - ANTHROPIC_API_KEY not set. Exiting.
+2026-03-08 03:55:24.331 | INFO     | __main__:main:75 - Database ready.
+2026-03-08 03:55:24.336 | INFO     | rpi.camera.receiver:start:41 - Camera receiver listening on 0.0.0.0:8080
+2026-03-08 03:55:24.336 | INFO     | rpi.camera.puller:start:34 - Camera puller started → http://10.29.197.105/capture every 5s
+2026-03-08 03:55:24.336 | WARNING  | rpi.display.eink:start:65 - Waveshare EPD not available — display will print to stdout.
+2026-03-08 03:55:24.336 | INFO     | __main__:main:137 - Curiosity Agent is running. Waiting for frames from ESP32…
+2026-03-08 03:55:24.360 | DEBUG    | rpi.display.eink:_render_sync:110 - Display preview saved to /tmp/curiosity_display_preview.png
+2026-03-08 03:55:25.887 | DEBUG    | __main__:_run_loop:198 - Analysing scene…
+2026-03-08 03:55:29.415 | INFO     | __main__:_run_loop:200 - Scene: A tilted view of what appears to be a laboratory or technical workspace with metal shelving units, a ruler for measurement, and equipment storage near a window. | Objects: ['ruler', 'metal shelf', 'laboratory equipment', 'window', 'white walls', 'storage shelves', 'scientific instruments']
+2026-03-08 03:55:31.253 | INFO     | rpi.agent.session:begin:62 - Curiosity ebaa0bcc started.
+2026-03-08 03:55:31.254 | INFO     | __main__:speak:174 - [AGENT] Does the ruler ever measure anything that isn't already decided
+2026-03-08 03:55:36.227 | DEBUG    | __main__:listen:178 - Listening (timeout=30s)…
+2026-03-08 03:55:36.228 | INFO     | rpi.audio.stt:_load_model:41 - Loading Whisper model 'base.en'…
+2026-03-08 03:55:45.536 | INFO     | rpi.audio.stt:_load_model:43 - Whisper model ready.
+2026-03-08 03:55:45.536 | DEBUG    | rpi.audio.stt:_record_and_transcribe:78 - Listening…
+2026-03-08 03:56:06.228 | DEBUG    | rpi.audio.stt:listen:59 - STT listen timeout.
+2026-03-08 03:56:06.229 | INFO     | rpi.agent.curiosity_agent:trigger:210 - No response to opening question → ignore → cooldown.
+2026-03-08 03:56:06.230 | INFO     | rpi.agent.session:end:77 - Curiosity ebaa0bcc -> ignored
+2026-03-08 03:56:06.230 | INFO     | rpi.agent.cooldown:start:38 - Cooldown started (ignored). Resumes in 10 min.
+2026-03-08 03:56:06.435 | DEBUG    | rpi.audio.stt:_record_and_transcribe:119 - Transcribed: "Wait, maybe I'm talking to you in the AI right now. I don't know. It's a crazy part. Like, I don't know if it's listening or not. No, well, whatever. Okay, another 30 seconds. Oh."

@@ -9,6 +9,9 @@ Install Waveshare driver:
   pip install ./e-Paper/RaspberryPi_JetsonNano/python/
 """
 
+# Here –on the dock– we will display the "backlog" of questions that have been asked in the past
+# This includes things like what are the main themes of what you were thinking
+
 from __future__ import annotations
 
 import asyncio
@@ -59,6 +62,7 @@ class EinkDisplay:
         if EPD_AVAILABLE:
             self._epd = epd_driver.EPD()
             self._epd.init()
+            self._epd.Clear()
             logger.info("E-ink display initialised.")
         else:
             logger.warning("Waveshare EPD not available — display will print to stdout.")
@@ -83,11 +87,11 @@ class EinkDisplay:
             await asyncio.sleep(self._refresh_interval)
 
     async def render_now(self, metrics: dict) -> None:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         await loop.run_in_executor(None, self._render_sync, metrics)
 
     async def _render(self, metrics: dict) -> None:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         await loop.run_in_executor(None, self._render_sync, metrics)
 
     def _render_sync(self, metrics: dict) -> None:
@@ -95,9 +99,11 @@ class EinkDisplay:
             self._print_fallback(metrics)
             return
 
-        img = Image.new("1", (_W, _H), _BG)
+        w = self._epd.width if (EPD_AVAILABLE and self._epd) else _W
+        h = self._epd.height if (EPD_AVAILABLE and self._epd) else _H
+        img = Image.new("1", (w, h), _BG)
         draw = ImageDraw.Draw(img)
-        self._draw_dashboard(draw, metrics)
+        self._draw_dashboard(draw, metrics, w, h)
 
         if EPD_AVAILABLE and self._epd:
             self._epd.display(self._epd.getbuffer(img))
@@ -106,81 +112,81 @@ class EinkDisplay:
             img.save("/tmp/curiosity_display_preview.png")
             logger.debug("Display preview saved to /tmp/curiosity_display_preview.png")
 
-    def _draw_dashboard(self, draw: Any, m: dict) -> None:
-        f_large = _load_font(28)
-        f_med   = _load_font(20)
-        f_small = _load_font(16)
+    def _draw_dashboard(self, draw: Any, m: dict, w: int = _W, h: int = _H) -> None:
+        f_large = _load_font(26)
+        f_med   = _load_font(18)
+        f_small = _load_font(14)
+        f_tiny  = _load_font(12)
 
         # --- header ---
-        draw.text((20, 10), "Curiosity Dashboard", font=f_large, fill=_FG)
-        draw.line([(20, 48), (_W - 20, 48)], fill=_FG, width=2)
+        draw.text((20, 10), "What you've been wondering about", font=f_large, fill=_FG)
+        draw.line([(20, 44), (w - 20, 44)], fill=_FG, width=2)
 
-        # --- column 1: interests ---
-        x1 = 20
-        y = 60
-        draw.text((x1, y), "Top Interests", font=f_med, fill=_FG)
-        y += 28
+        # --- questions backlog (main body) ---
+        questions = m.get("recent_questions", [])
+        y = 56
+        row_h = 58  # height per question row
+        for i, q in enumerate(questions[:6]):
+            x = 20
+            text = q.get("trigger_question", "").strip()
+            # wrap long questions to fit within ~75% of width
+            max_chars = (w - 60) // 8
+            lines = textwrap.wrap(text, width=max_chars) or [text]
+            # bullet
+            draw.text((x, y + 2), "–", font=f_med, fill=_FG)
+            x += 18
+            # question text (up to 2 lines)
+            draw.text((x, y), lines[0], font=f_med, fill=_FG)
+            if len(lines) > 1:
+                draw.text((x, y + 20), lines[1], font=f_small, fill=_FG)
+            # summary as subtext if present
+            summary = (q.get("summary") or "").strip()
+            if summary:
+                summary_wrapped = textwrap.shorten(summary, width=max_chars + 10, placeholder="…")
+                draw.text((x, y + 38), summary_wrapped, font=f_tiny, fill=_GRAY)
+            # divider between rows (not after last)
+            if i < len(questions) - 1:
+                draw.line([(20, y + row_h - 4), (w - 20, y + row_h - 4)], fill=_GRAY, width=1)
+            y += row_h
+
+        # if no questions yet
+        if not questions:
+            draw.text((20, 80), "No completed curiosities yet.", font=f_med, fill=_GRAY)
+
+        # --- themes strip at bottom ---
+        themes_y = h - 52
+        draw.line([(20, themes_y - 6), (w - 20, themes_y - 6)], fill=_FG, width=1)
+        draw.text((20, themes_y), "Themes:", font=f_small, fill=_FG)
         interests = m.get("top_interests", [])
-        for item in interests[:5]:
-            name = item["name"].capitalize()
-            score = item["score"]
-            bar_w = min(int(score * 4), 140)
-            draw.text((x1, y), name, font=f_small, fill=_FG)
-            draw.rectangle([x1 + 100, y + 4, x1 + 100 + bar_w, y + 16], fill=_FG)
-            y += 24
-
-        # --- column 2: style ---
-        x2 = 320
-        y = 60
-        draw.text((x2, y), "Thinking Style", font=f_med, fill=_FG)
-        y += 28
-        draw.text((x2, y), m.get("focus_style", "—"), font=f_small, fill=_FG)
-        y += 24
-        draw.text((x2, y), m.get("dominant_ideation", "—"), font=f_small, fill=_FG)
-
-        # --- column 3: session counts ---
-        x3 = 560
-        y = 60
-        draw.text((x3, y), "Sessions", font=f_med, fill=_FG)
-        y += 28
-        stats = [
-            ("Total", m.get("total_curiosities", 0)),
-            ("Completed", m.get("completed", 0)),
-            ("Saved", m.get("saved", 0)),
-            ("Ignored", m.get("ignored", 0)),
-        ]
-        for label, val in stats:
-            draw.text((x3, y), f"{label}: {val}", font=f_small, fill=_FG)
-            y += 22
-
-        # --- peak hours ---
-        y = 310
-        draw.line([(20, y - 10), (_W - 20, y - 10)], fill=_FG, width=1)
-        draw.text((20, y), "Peak Hours (7-day)", font=f_med, fill=_FG)
-        peak = m.get("peak_hours", [])
-        draw.text((20, y + 28), "  ".join(peak) if peak else "—", font=f_small, fill=_FG)
-
-        # --- engagement ratio ---
-        answered = m.get("answered_7d", 0)
-        ignored  = m.get("ignored_7d", 0)
-        total    = answered + ignored
-        ratio_str = f"{answered}/{total} engaged (7d)" if total else "No data yet"
-        draw.text((320, y), "Engagement", font=f_med, fill=_FG)
-        draw.text((320, y + 28), ratio_str, font=f_small, fill=_FG)
+        tag_x = 90
+        for item in interests[:6]:
+            label = item["name"].capitalize()
+            tag_w = len(label) * 8 + 12
+            draw.rectangle([tag_x, themes_y, tag_x + tag_w, themes_y + 18], outline=_FG)
+            draw.text((tag_x + 6, themes_y + 2), label, font=f_tiny, fill=_FG)
+            tag_x += tag_w + 8
+            if tag_x > w - 80:
+                break
 
         # --- footer ---
-        draw.line([(20, _H - 30), (_W - 20, _H - 30)], fill=_FG, width=1)
-        draw.text((20, _H - 22), "curiosity-agent  |  press to refresh", font=f_small, fill=_GRAY)
+        draw.line([(20, h - 22), (w - 20, h - 22)], fill=_GRAY, width=1)
+        total = m.get("total_curiosities", 0)
+        style = m.get("focus_style", "")
+        footer = f"{total} curiosities  ·  {style}" if style else f"{total} curiosities"
+        draw.text((20, h - 18), footer, font=f_tiny, fill=_GRAY)
 
     def _print_fallback(self, metrics: dict) -> None:
-        print("\n" + "=" * 50)
-        print("  CURIOSITY DASHBOARD")
-        print("=" * 50)
-        print(f"  Focus: {metrics.get('focus_style', '—')}  |  Ideation: {metrics.get('dominant_ideation', '—')}")
-        print(f"  Sessions: {metrics.get('total_curiosities', 0)} total, "
-              f"{metrics.get('completed', 0)} completed, "
-              f"{metrics.get('saved', 0)} saved")
-        print("  Top interests:")
-        for item in metrics.get("top_interests", [])[:5]:
-            print(f"    {item['name'].capitalize()}: {item['score']:.1f}")
-        print("=" * 50 + "\n")
+        print("\n" + "=" * 60)
+        print("  WHAT YOU'VE BEEN WONDERING ABOUT")
+        print("=" * 60)
+        for q in metrics.get("recent_questions", []):
+            print(f"  – {q.get('trigger_question', '')}")
+            if q.get("summary"):
+                print(f"      {q['summary']}")
+        if not metrics.get("recent_questions"):
+            print("  No completed curiosities yet.")
+        print("-" * 60)
+        themes = "  ".join(i["name"].capitalize() for i in metrics.get("top_interests", [])[:6])
+        print(f"  Themes: {themes or '—'}")
+        print(f"  {metrics.get('total_curiosities', 0)} curiosities  ·  {metrics.get('focus_style', '')}")
+        print("=" * 60 + "\n")

@@ -184,7 +184,7 @@ class RecognitionEngine:
                 )
             elif self._backend == "yolo":
                 import asyncio
-                loop = asyncio.get_event_loop()
+                loop = asyncio.get_running_loop()
                 return await loop.run_in_executor(
                     None,
                     _describe_with_yolo,
@@ -194,7 +194,7 @@ class RecognitionEngine:
                 )
             elif self._backend == "clip":
                 import asyncio
-                loop = asyncio.get_event_loop()
+                loop = asyncio.get_running_loop()
                 return await loop.run_in_executor(
                     None, _describe_with_clip, jpeg_bytes, self._confidence_threshold
                 )

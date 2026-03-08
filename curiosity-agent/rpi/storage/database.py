@@ -88,6 +88,20 @@ class Database:
         ) as cur:
             return [dict(r) for r in await cur.fetchall()]
 
+    async def get_recent_questions(self, limit: int = 6) -> list[dict]:
+        """Return the most recent curiosities that were completed or saved, with their questions and summaries."""
+        async with self._conn.execute(
+            """
+            SELECT trigger_question, summary, status, started_at
+            FROM curiosities
+            WHERE status IN ('completed', 'saved')
+            ORDER BY started_at DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ) as cur:
+            return [dict(r) for r in await cur.fetchall()]
+
     # ------------------------------------------------------------------
     # turns
     # ------------------------------------------------------------------

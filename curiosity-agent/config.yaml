@@ -10,7 +10,7 @@ esp32:
   stream_mode: false         # true = live MJPEG stream, false = periodic still
   # Pull mode: fetch frames directly from ESP32 CameraWebServer (stock firmware)
   pull_mode: true
-  pull_url: "http://172.20.10.2/capture"   # single-frame JPEG endpoint
+  pull_url: "http://10.29.197.105/capture"   # single-frame JPEG endpoint
 
 recognition:
   backend: "claude"          # "claude" | "yolo" | "clip"

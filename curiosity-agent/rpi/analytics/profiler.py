@@ -39,6 +39,7 @@ class UserProfiler:
         db_metrics = await self._db.get_display_metrics()
         scores = await self._db.get_interest_scores()
         profile = await self._db.get_full_profile()
+        recent_questions = await self._db.get_recent_questions(limit=6)
 
         top_interests = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:5]
 
@@ -67,6 +68,7 @@ class UserProfiler:
             "peak_hours": peak_labels,
             "answered_7d": db_metrics.get("answered_7d", 0),
             "ignored_7d": db_metrics.get("ignored_7d", 0),
+            "recent_questions": recent_questions,
         }
 
     async def build_question_context(self) -> str:
