@@ -4,13 +4,13 @@ Curiosity Agent — main entry point for the Raspberry Pi.
 Startup sequence:
   1. Load config
   2. Connect to SQLite
-  3. Start camera receiver HTTP server
-  4. Start e-ink display refresh loop
+  3. Start camera receiver / puller
+  4. Start e-ink display with rotary encoder
   5. Enter main loop:
        a. Wait for a frame from ESP32
        b. Run object recognition
-       c. If no cooldown and no active session → trigger a curiosity
-       d. Audio I/O handles the conversation
+       c. If no cooldown → generate a curiosity question
+       d. Speak the question, update the display
 """
 
 from __future__ import annotations
@@ -30,10 +30,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from rpi.agent.cooldown import CooldownManager
 from rpi.agent.curiosity_agent import CuriosityAgent
-from rpi.analytics.categorizer import InterestCategorizer
-from rpi.analytics.profiler import UserProfiler
-from rpi.analytics.tracker import AnalyticsTracker
-from rpi.audio.stt import STT
 from rpi.audio.tts import TTS
 from rpi.camera.receiver import CameraReceiver
 from rpi.camera.puller import CameraPuller
@@ -99,25 +95,17 @@ async def main() -> None:
         voice=cfg["audio"]["tts_voice"],
         output_device=cfg["audio"]["output_device_index"],
     )
-    stt = STT(
-        model_name=cfg["audio"]["stt_model"],
-        input_device=cfg["audio"]["input_device_index"],
-        silence_threshold_sec=cfg["audio"]["silence_threshold_sec"],
-    )
-    cooldown   = CooldownManager(db, cooldown_minutes=cfg["agent"]["cooldown_minutes"])
-    categorizer = InterestCategorizer(db, claude, model)
-    tracker    = AnalyticsTracker(db)
-    profiler   = UserProfiler(db)
-    agent      = CuriosityAgent(
+    cooldown = CooldownManager(db, cooldown_minutes=cfg["agent"]["cooldown_minutes"])
+    agent = CuriosityAgent(
         db=db,
         claude_client=claude,
         model=model,
         cooldown=cooldown,
-        categorizer=categorizer,
-        tracker=tracker,
-        max_turns=cfg["agent"]["max_conversation_turns"],
     )
-    display = EinkDisplay(refresh_minutes=cfg["display"]["metrics_refresh_minutes"])
+    display = EinkDisplay(
+        encoder_pin_a=cfg["display"].get("encoder_pin_a", 14),
+        encoder_pin_b=cfg["display"].get("encoder_pin_b", 15),
+    )
 
     # ---- start background services ---
     await receiver.start()
@@ -132,7 +120,11 @@ async def main() -> None:
         )
         await puller.start()
 
-    await display.start(metrics_fn=profiler.get_display_metrics)
+    await display.start()
+
+    # load existing questions into display
+    existing = await db.get_recent_questions(limit=500)
+    await display.update_questions(existing)
 
     logger.info("Curiosity Agent is running. Waiting for frames from ESP32…")
 
@@ -140,13 +132,12 @@ async def main() -> None:
     try:
         await _run_loop(
             cfg=cfg,
+            db=db,
             receiver=receiver,
             recognition=recognition,
             agent=agent,
-            profiler=profiler,
             tts=tts,
-            stt=stt,
-            tracker=tracker,
+            display=display,
         )
     except KeyboardInterrupt:
         logger.info("Shutting down.")
@@ -160,37 +151,23 @@ async def main() -> None:
 
 async def _run_loop(
     cfg: dict,
+    db: Database,
     receiver: CameraReceiver,
     recognition: RecognitionEngine,
     agent: CuriosityAgent,
-    profiler: UserProfiler,
     tts: TTS,
-    stt: STT,
-    tracker: AnalyticsTracker,
+    display: EinkDisplay,
 ) -> None:
     capture_interval = cfg["esp32"]["capture_interval_sec"]
 
-    async def speak(text: str) -> None:
-        logger.info(f"[AGENT] {text}")
-        await tts.speak(text)
-
-    async def listen(timeout: float) -> str | None:
-        logger.debug(f"Listening (timeout={timeout}s)…")
-        text = await stt.listen(timeout_sec=timeout)
-        if text:
-            logger.info(f"[USER] {text}")
-        return text
-
     while True:
-        # wait for a frame
         frame = await receiver.get_latest_frame(timeout=capture_interval * 2)
 
         if frame is None:
             logger.debug("No frame received, waiting…")
             continue
 
-        # skip if agent is mid-conversation or cooldown is active
-        if agent.is_active or cooldown_active(agent):
+        if agent._cooldown.is_active:
             await asyncio.sleep(1)
             continue
 
@@ -203,22 +180,21 @@ async def _run_loop(
             await asyncio.sleep(capture_interval)
             continue
 
-        # personalise the question with user profile context
-        profile_context = await profiler.build_question_context()
-        if profile_context:
-            # inject into the agent's opening prompt dynamically
-            scene.scene_summary = f"{scene.scene_summary}. [{profile_context}]"
+        # generate question
+        question = await agent.ask(scene)
+        if not question:
+            await asyncio.sleep(capture_interval)
+            continue
 
-        # trigger curiosity
-        await agent.trigger(scene=scene, speak=speak, listen=listen)
+        # speak the question
+        logger.info(f"[AGENT] {question}")
+        await tts.speak(question)
 
-        # brief pause before next trigger
+        # refresh display with updated questions
+        questions = await db.get_recent_questions(limit=500)
+        await display.update_questions(questions)
+
         await asyncio.sleep(capture_interval)
-
-
-def cooldown_active(agent: CuriosityAgent) -> bool:
-    # access via the agent's cooldown reference
-    return agent._cooldown.is_active
 
 
 if __name__ == "__main__":
