@@ -1,0 +1,73 @@
+anthropic:
+  api_key: "${ANTHROPIC_API_KEY}"
+  model: "claude-opus-4-6"
+  vision_model: "claude-opus-4-6"
+
+esp32:
+  host: "0.0.0.0"          # IP of this machine (ESP32 posts to it, if using push mode)
+  port: 8080
+  capture_interval_sec: 5   # how often to trigger a new scene analysis
+  stream_mode: false         # true = live MJPEG stream, false = periodic still
+  # Pull mode: fetch frames directly from ESP32 CameraWebServer (stock firmware)
+  pull_mode: true
+  pull_url: "http://172.20.10.2/capture"   # single-frame JPEG endpoint
+
+recognition:
+  backend: "claude"          # "claude" | "yolo" | "clip"
+  yolo_model: "yolov8n.pt"   # only used when backend=yolo
+  confidence_threshold: 0.45
+
+agent:
+  cooldown_minutes: 10       # silence period after ignored/rejected curiosity
+  max_conversation_turns: 20
+  save_phrases:
+    - "that's all for now"
+    - "continue this later"
+    - "save this"
+    - "pause"
+  end_phrases:
+    - "goodbye"
+    - "done"
+    - "stop"
+    - "exit"
+
+audio:
+  tts_engine: "edge-tts"     # "edge-tts" | "pyttsx3" | "espeak"
+  tts_voice: "en-US-GuyNeural"
+  stt_model: "base.en"       # Whisper model size
+  input_device_index: null   # null = system default
+  output_device_index: null
+  silence_threshold_sec: 2.0 # seconds of silence before STT commits
+
+display:
+  driver: "waveshare_epd7in5_v2"   # module name under display/drivers/
+  width: 800
+  height: 480
+  metrics_refresh_minutes: 5
+
+storage:
+  db_path: "data/curiosity.db"
+  saved_curiosities_dir: "data/saved"
+
+analytics:
+  interest_categories:
+    - history
+    - economics
+    - mathematics
+    - science
+    - fitness
+    - travel
+    - design
+    - philosophy
+    - technology
+    - arts
+    - language
+    - nature
+    - culture
+    - psychology
+    - politics
+  ideation_types:
+    - creative
+    - learning
+    - conceptual
+    - exploratory
