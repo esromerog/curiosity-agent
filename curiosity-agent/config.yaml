@@ -31,7 +31,7 @@ display:
   height: 300
   encoder_pin_a: 14            # rotary encoder CLK pin (BCM)
   encoder_pin_b: 15            # rotary encoder DT pin (BCM)
-  encoder_pin_button: 18       # rotary encoder push-button pin (BCM)
+  encoder_pin_button: 5       # rotary encoder push-button pin (BCM)
   curiosity_type_hours: 12     # x-axis span (hours) for the stacked-area types view
 
 storage:

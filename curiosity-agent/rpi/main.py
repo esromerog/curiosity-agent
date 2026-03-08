@@ -30,6 +30,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from rpi.agent.cooldown import CooldownManager
 from rpi.agent.curiosity_agent import CuriosityAgent
+from rpi.analytics.categorizer import InterestCategorizer
 from rpi.audio.tts import TTS
 from rpi.camera.receiver import CameraReceiver
 from rpi.camera.puller import CameraPuller
@@ -96,11 +97,17 @@ async def main() -> None:
         output_device=cfg["audio"]["output_device_index"],
     )
     cooldown = CooldownManager(db, cooldown_minutes=cfg["agent"]["cooldown_minutes"])
+    categorizer = InterestCategorizer(
+        db=db,
+        claude_client=claude,
+        model=model,
+    )
     agent = CuriosityAgent(
         db=db,
         claude_client=claude,
         model=model,
         cooldown=cooldown,
+        categorizer=categorizer,
     )
     display = EinkDisplay(
         encoder_pin_a=cfg["display"].get("encoder_pin_a", 14),

@@ -82,11 +82,13 @@ class CuriosityAgent:
         claude_client: anthropic.AsyncAnthropic,
         model: str,
         cooldown: CooldownManager,
+        categorizer=None,
     ) -> None:
         self._db = db
         self._client = claude_client
         self._model = model
         self._cooldown = cooldown
+        self._categorizer = categorizer  # InterestCategorizer | None
 
     async def ask(self, scene: SceneDescription) -> str | None:
         """Generate a curiosity question from the scene, save to DB, return it."""
@@ -101,6 +103,12 @@ class CuriosityAgent:
         await self._db.update_curiosity_status(curiosity_id, "completed")
         await self._db.log_event("curiosity_completed", curiosity_id=curiosity_id)
         await self._cooldown.start("asked")
+
+        # Classify the question to populate graph data.
+        # We do this after cooldown so a classification failure never blocks the
+        # main loop. Fire-and-forget style — errors are logged inside categorizer.
+        if self._categorizer is not None:
+            await self._categorizer.classify_and_store(question, curiosity_id)
 
         logger.info(f"Curiosity {curiosity_id[:8]}: {question}")
         return question

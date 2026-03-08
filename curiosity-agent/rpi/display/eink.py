@@ -329,12 +329,12 @@ class EinkDisplay:
     def _mpl_base_fig(self, title: str, view_idx: int, w: int, h: int, **layout_kw):
         """Return (fig, ax) sized exactly w×h px at 100 dpi, with title and dot indicator."""
         fig, ax = plt.subplots(figsize=(w / 100, h / 100), dpi=100)
-        margins = dict(top=0.86, bottom=0.20, left=0.18, right=0.97)
+        margins = dict(top=0.86, bottom=0.22, left=0.20, right=0.97)
         margins.update(layout_kw)
         fig.subplots_adjust(**margins)
         ax.set_title(title, fontsize=11, fontweight="bold", pad=3)
         dots = "   ".join("\u25cf" if i == view_idx else "\u25cb" for i in range(_NUM_VIEWS))
-        fig.text(0.5, 0.02, dots, ha="center", fontsize=7, color="#555555")
+        fig.text(0.5, 0.02, dots, ha="center", fontsize=8, color="#555555")
         return fig, ax
 
     def _render_view_today(self, graph_data: dict, w: int, h: int) -> "Image.Image":
@@ -352,37 +352,37 @@ class EinkDisplay:
             return img
 
         nodes = graph_data.get("nodes", [])
-        fig, ax = self._mpl_base_fig("Today's Curiosity", 1, w, h, left=0.15, bottom=0.18)
+        fig, ax = self._mpl_base_fig("Today's Curiosity", 1, w, h, left=0.17, bottom=0.20)
 
         if not nodes:
             ax.text(0.5, 0.5, "No curiosities logged today yet",
                     ha="center", va="center", transform=ax.transAxes,
-                    fontsize=9, color="gray")
+                    fontsize=10, color="gray")
             ax.set_xlim(0, 5)
             ax.set_ylim(-0.05, 1.05)
         else:
             xs = [n["breadth"] for n in nodes]
             ys = [n["depth"]   for n in nodes]
-            ax.scatter(xs, ys, s=28, c="black", zorder=3, linewidths=0)
+            ax.scatter(xs, ys, s=40, c="black", zorder=3, linewidths=0)
 
             for i, (x, y, node) in enumerate(zip(xs, ys, nodes)):
                 label = " ".join(node["question"].split()[:4])
-                dy = 5 if i % 2 == 0 else -10
+                dy = 6 if i % 2 == 0 else -12
                 ax.annotate(
                     label, (x, y),
                     xytext=(3, dy), textcoords="offset points",
-                    fontsize=5, va="bottom" if dy > 0 else "top",
+                    fontsize=7, va="bottom" if dy > 0 else "top",
                     clip_on=True,
                 )
 
             ax.set_xlim(-0.3, max(5, max(xs)) + 0.8)
             ax.set_ylim(-0.05, 1.05)
 
-        ax.set_xlabel("Breadth  (no. of domains)", fontsize=7)
-        ax.set_ylabel("Depth", fontsize=7)
+        ax.set_xlabel("Breadth  (no. of domains)", fontsize=9)
+        ax.set_ylabel("Depth", fontsize=9)
         ax.set_yticks([0.0, 0.5, 1.0])
-        ax.set_yticklabels(["broad", "mid", "deep"], fontsize=6)
-        ax.tick_params(axis="x", labelsize=6)
+        ax.set_yticklabels(["broad", "mid", "deep"], fontsize=8)
+        ax.tick_params(axis="x", labelsize=8)
         ax.grid(True, linestyle=":", linewidth=0.4, color="gray")
         return self._mpl_to_pil(fig, w, h)
 
@@ -435,14 +435,14 @@ class EinkDisplay:
         ax.set_xlim(0, x_limit)
         step = max(1, x_limit // 6)
         ax.set_xticks(range(0, x_limit + 1, step))
-        ax.tick_params(labelsize=6)
-        ax.set_xlabel("Hour of day", fontsize=7)
-        ax.set_ylabel("# curiosities", fontsize=7)
+        ax.tick_params(labelsize=8)
+        ax.set_xlabel("Hour of day", fontsize=9)
+        ax.set_ylabel("# curiosities", fontsize=9)
         ax.legend(
-            loc="upper left", fontsize=5, ncol=2,
+            loc="upper left", fontsize=7, ncol=2,
             frameon=True, edgecolor="black",
-            handlelength=1.2, handleheight=0.8,
-            borderpad=0.3, labelspacing=0.2,
+            handlelength=1.4, handleheight=1.0,
+            borderpad=0.4, labelspacing=0.25,
         )
         return self._mpl_to_pil(fig, w, h)
 
@@ -467,7 +467,7 @@ class EinkDisplay:
         if not top_topics:
             ax.text(0.5, 0.5, "No topics recorded yet",
                     ha="center", va="center", transform=ax.transAxes,
-                    fontsize=9, color="gray")
+                    fontsize=10, color="gray")
         else:
             names  = [c.capitalize() for c, _ in top_topics]
             scores = [s for _, s in top_topics]
@@ -477,17 +477,17 @@ class EinkDisplay:
             y_pos = list(range(len(names)))
             bars  = ax.barh(y_pos, pct, color="black", height=0.55, zorder=2)
             ax.set_yticks(y_pos)
-            ax.set_yticklabels(names, fontsize=7)
-            ax.set_xlabel("Relative interest (%)", fontsize=7)
-            ax.set_xlim(0, 115)
-            ax.tick_params(axis="x", labelsize=6)
+            ax.set_yticklabels(names, fontsize=9)
+            ax.set_xlabel("Relative interest (%)", fontsize=9)
+            ax.set_xlim(0, 118)
+            ax.tick_params(axis="x", labelsize=8)
             # Percentage label at the right end of each bar
             for bar, val in zip(bars, pct):
                 ax.text(
                     val + 1.5,
                     bar.get_y() + bar.get_height() / 2,
                     f"{val:.0f}%",
-                    va="center", fontsize=6,
+                    va="center", fontsize=8,
                 )
         return self._mpl_to_pil(fig, w, h)
 
