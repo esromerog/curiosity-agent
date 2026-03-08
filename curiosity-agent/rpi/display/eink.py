@@ -339,12 +339,16 @@ class EinkDisplay:
 
     def _render_view_today(self, graph_data: dict, w: int, h: int) -> "Image.Image":
         """
-        View 1 — Today's Curiosity: breadth × depth scatter map.
+        View 1 — Today's Curiosity: breadth × depth node map.
 
-        Each node is a curiosity from today.
-          x (breadth) = number of distinct interest domains touched.
-          y (depth)   = average depth_signal from the classifier (0=broad → 1=deep).
-        Labels show the first four words of the trigger question.
+        Each filled circle = one curiosity, numbered in chronological order.
+        A dashed line connects them in order, tracing the day's intellectual journey.
+
+          x = breadth: number of distinct interest domains touched
+          y = depth:   0 = exploratory / surface-level, 1 = focused / specialised
+
+        E-ink note: alpha is useless after 1-bit thresholding (≥128 = white).
+        Use solid lines and pure black text only.
         """
         if not MPL_AVAILABLE:
             img = Image.new("1", (w, h), _BG)
@@ -352,38 +356,58 @@ class EinkDisplay:
             return img
 
         nodes = graph_data.get("nodes", [])
-        fig, ax = self._mpl_base_fig("Today's Curiosity", 1, w, h, left=0.17, bottom=0.20)
+        xs = [n["breadth"] for n in nodes]
+        ys = [n["depth"]   for n in nodes]
+        x_max = max(xs) if xs else 0
+
+        fig, ax = self._mpl_base_fig(
+            "Today's Curiosity", 1, w, h,
+            left=0.06, right=0.96, top=0.87, bottom=0.13,
+        )
+
+        ax.set_xlim(-0.6, max(x_max + 1.0, 4.0))
+        ax.set_ylim(-0.08, 1.08)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+
+        # axis direction labels
+        ax.set_xlabel("breadth  →", fontsize=8, labelpad=1)
+        ax.set_ylabel("↑  depth", fontsize=8, labelpad=1)
+
+        # quadrant corner hints — must be pure black to survive the 1-bit threshold
+        _ck = dict(transform=ax.transAxes, fontsize=6, color="black", linespacing=1.3)
+        ax.text(0.02, 0.02, "surface\nnarrow", va="bottom", ha="left",  **_ck)
+        ax.text(0.98, 0.02, "surface\nbroad",  va="bottom", ha="right", **_ck)
+        ax.text(0.02, 0.98, "deep\nnarrow",    va="top",    ha="left",  **_ck)
+        ax.text(0.98, 0.98, "deep\nbroad",     va="top",    ha="right", **_ck)
+
+        # faint center dividers (dashed black — visible at 1-bit; keep thin)
+        ax.axhline(0.5, color="black", linewidth=0.4, linestyle=(0, (6, 6)), zorder=0)
+        cx = (-0.6 + max(x_max + 1.0, 4.0)) / 2
+        ax.axvline(cx,  color="black", linewidth=0.4, linestyle=(0, (6, 6)), zorder=0)
 
         if not nodes:
-            ax.text(0.5, 0.5, "No curiosities logged today yet",
+            ax.text(0.5, 0.5, "No curiosities today yet",
                     ha="center", va="center", transform=ax.transAxes,
-                    fontsize=10, color="gray")
-            ax.set_xlim(0, 5)
-            ax.set_ylim(-0.05, 1.05)
-        else:
-            xs = [n["breadth"] for n in nodes]
-            ys = [n["depth"]   for n in nodes]
-            ax.scatter(xs, ys, s=40, c="black", zorder=3, linewidths=0)
+                    fontsize=9, color="black")
+            return self._mpl_to_pil(fig, w, h)
 
-            for i, (x, y, node) in enumerate(zip(xs, ys, nodes)):
-                label = " ".join(node["question"].split()[:4])
-                dy = 6 if i % 2 == 0 else -12
-                ax.annotate(
-                    label, (x, y),
-                    xytext=(3, dy), textcoords="offset points",
-                    fontsize=7, va="bottom" if dy > 0 else "top",
-                    clip_on=True,
-                )
+        # ------ temporal path (dashed, thin, solid black) ------
+        if len(nodes) > 1:
+            ax.plot(xs, ys, linestyle="--", color="black", linewidth=0.7, zorder=1)
 
-            ax.set_xlim(-0.3, max(5, max(xs)) + 0.8)
-            ax.set_ylim(-0.05, 1.05)
+        # ------ nodes: solid black disk + white order number ------
+        # s=480 → diameter ≈ 25 pt ≈ 35 px at 100 dpi; fits a 2-digit number at 8 pt
+        NODE_S = 480
+        for x, y, node in zip(xs, ys, nodes):
+            ax.scatter([x], [y], s=NODE_S, c="black", zorder=3,
+                       linewidths=0, marker="o")
+            ax.text(x, y, str(node["order"]),
+                    ha="center", va="center",
+                    fontsize=8, fontweight="bold", color="white", zorder=4)
 
-        ax.set_xlabel("Breadth  (no. of domains)", fontsize=9)
-        ax.set_ylabel("Depth", fontsize=9)
-        ax.set_yticks([0.0, 0.5, 1.0])
-        ax.set_yticklabels(["broad", "mid", "deep"], fontsize=8)
-        ax.tick_params(axis="x", labelsize=8)
-        ax.grid(True, linestyle=":", linewidth=0.4, color="gray")
         return self._mpl_to_pil(fig, w, h)
 
     def _render_view_types(self, graph_data: dict, w: int, h: int) -> "Image.Image":

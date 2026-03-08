@@ -191,11 +191,12 @@ class Database:
 
     async def get_today_curiosity_nodes(self) -> list[dict]:
         """
-        Return today's curiosities as node data for the breadth × depth map.
+        Return today's curiosities as node data for the breadth × depth map,
+        in chronological order.
 
-        breadth = number of distinct interest categories across all classification
-                  events for that curiosity (proxy for domain spread).
-        depth   = average depth_signal from the classifier (0 = broad, 1 = deep).
+        breadth = number of distinct interest categories classified (domain spread).
+        depth   = average depth_signal from the classifier (0 = broad, 1 = focused/deep).
+        order   = 1-indexed chronological position within today.
         """
         import datetime
         today_start = datetime.datetime.now().replace(
@@ -204,16 +205,18 @@ class Database:
 
         async with self._conn.execute(
             """
-            SELECT e.curiosity_id, e.metadata, c.trigger_question
+            SELECT e.curiosity_id, e.metadata, c.trigger_question, e.timestamp
             FROM analytics_events e
             JOIN curiosities c ON e.curiosity_id = c.id
             WHERE e.event_type = 'interest_classified'
               AND e.timestamp >= ?
+            ORDER BY e.timestamp ASC
             """,
             (today_start,),
         ) as cur:
             rows = await cur.fetchall()
 
+        # dict is insertion-ordered (Python 3.7+); first encounter = chronological order
         by_id: dict[str, dict] = {}
         for row in rows:
             cid = row["curiosity_id"]
@@ -235,8 +238,9 @@ class Database:
                 "question": v["question"],
                 "depth": sum(v["depth_vals"]) / len(v["depth_vals"]),
                 "breadth": len(v["categories"]),
+                "order": idx + 1,
             }
-            for v in by_id.values()
+            for idx, (_, v) in enumerate(by_id.items())
         ]
 
     async def get_hourly_type_data(self, since_hours: int = 24) -> dict[tuple[int, str], int]:
